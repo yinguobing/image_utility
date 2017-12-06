@@ -16,3 +16,5 @@
 `random_split.py` 将指定文件夹下的图片按比例随机分离到两个文件夹。
 
 `resize_image.py` 遍历指定文件夹，对图片进行尺寸变换操作。
+
+`pts_tools.py` 读取[IBUG](https://ibug.doc.ic.ac.uk/resources/facial-point-annotations/)数据，并将面部特征点的结果显示在图片上。

@@ -1,5 +1,11 @@
+"""
+This script shows how to read iBUG pts file and draw all the landmark points on image.
+"""
+
 import os
+
 import numpy as np
+
 import cv2
 
 IMG_DIR = "/home/robin/Documents/landmark/dataset/ibug"
@@ -53,7 +59,7 @@ def preview(point_file):
     width, height = img.shape[:2]
     max_height = 640
     if height > max_height:
-        img = cv2.resize(img, (max_height, int(width*max_height/height)))
+        img = cv2.resize(img, (max_height, int(width * max_height / height)))
     cv2.imshow("preview", img)
     cv2.waitKey(100)
 

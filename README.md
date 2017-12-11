@@ -20,3 +20,5 @@
 `pts_tools.py` 读取[IBUG](https://ibug.doc.ic.ac.uk/resources/facial-point-annotations/)数据，并将面部特征点的结果显示在图片上。
 
 `count_files.py` 遍历制定文件夹，对所有文件按照后缀名进行计数操作。
+
+`detect_face.py` 从视频或者摄像头中检测人脸

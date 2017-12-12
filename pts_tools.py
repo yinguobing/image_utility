@@ -9,8 +9,7 @@ import numpy as np
 import cv2
 import detect_face as fd
 
-IMG_DIR = "/home/robin/Documents/landmark/dataset/lfpw/testset"
-IMG_FORMAT = ".png"
+DATA_DIR = "/home/robin/Documents/landmark/dataset"
 
 
 def read_points(file_name=None):
@@ -44,14 +43,20 @@ def preview(point_file):
     Preview points on image.
     """
     # Read the points from file.
-    raw_points = read_points(os.path.join(IMG_DIR, point_file))
+    raw_points = read_points(point_file)
 
     # Safe guard, make sure point importing goes well.
     assert len(raw_points) == 68, "The landmarks should contain 68 points."
 
     # Read the image.
-    img = cv2.imread(os.path.join(
-        IMG_DIR, point_file.split(".")[-2] + IMG_FORMAT))
+    head, tail = os.path.split(point_file)
+    image_file = tail.split('.')[-2]
+    img_jpg = os.path.join(head, image_file+".jpg")
+    img_png = os.path.join(head, image_file+".png")
+    if os.path.exists(img_jpg):
+        img = cv2.imread(img_jpg)
+    else:
+        img = cv2.imread(img_png)
 
     # Get the face bounding boxes.
     conf, faceboxes = fd.get_facebox(img, threshold=0.9)
@@ -88,7 +93,7 @@ def preview(point_file):
     if height > max_height:
         img = cv2.resize(img, (max_height, int(width * max_height / height)))
     cv2.imshow("preview", img)
-    cv2.waitKey()
+    cv2.waitKey(30)
 
 
 def main():
@@ -96,13 +101,15 @@ def main():
     The main entrance
     """
     # List all the files
-    for _, _, file_names in os.walk(IMG_DIR):
-        pts_file_list = [
-            file for file in file_names if file.split(".")[-1] in ["pts"]]
+    pts_file_list = []
+    for file_path, _, file_names in os.walk(DATA_DIR):
+        for file_name in file_names:
+            if file_name.split(".")[-1] in ["pts"]:
+                pts_file_list.append(os.path.join(file_path, file_name))
 
     # Show the image one by one.
-    for file in pts_file_list:
-        preview(file)
+    for file_name in pts_file_list:
+        preview(file_name)
 
 
 if __name__ == "__main__":

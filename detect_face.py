@@ -59,7 +59,7 @@ def draw_result(image, confidences, faceboxes):
         cv.rectangle(image, (facebox[0], facebox[1] - label_size[1]),
                      (facebox[0] + label_size[0],
                       facebox[1] + base_line),
-                     (255, 255, 255), cv.FILLED)
+                     (0, 255, 0), cv.FILLED)
         cv.putText(image, label, (facebox[0], facebox[1]),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
@@ -87,11 +87,130 @@ def get_square_box(faceboxes):
     return square_boxes
 
 
-def draw_square_box(image, faceboxes):
+def draw_box(image, faceboxes, box_color=(255, 255, 255)):
     """Draw square boxes on image"""
     for facebox in faceboxes:
         cv.rectangle(image, (facebox[0], facebox[1]),
-                     (facebox[2], facebox[3]), (255, 255, 255))
+                     (facebox[2], facebox[3]), box_color)
+
+
+def fit_box(image, points, facebox):
+    """
+    Fit the box, make sure it's inside the image and contains all the points.
+    """
+    # First check the box if it's outside of the image.
+    rows = image.shape[0]
+    cols = image.shape[1]
+
+    def _check_box(box):
+        """Check if box is valid."""
+        # Bounding edge of the landmark points.
+        min_x = min([point[0] for point in points])
+        max_x = max([point[0] for point in points])
+        min_y = min([point[1] for point in points])
+        max_y = max([point[1] for point in points])
+        # Box is in image.
+        is_in_image = box[0] >= 0 or box[1] >= 0 or box[2] <= cols or box[3] <= rows
+        # Box contains all the points.
+        contains_points = box[0] <= min_x or box[1] <= min_y or box[2] >= max_x or box[3] >= max_y
+        # Box is square.
+        w_equal_h = (box[2] - box[0]) == (box[3] - box[1])
+        # Return the result.
+        return is_in_image and contains_points and w_equal_h
+
+    def _move_box(box):
+        """Method 1: Try to move the box."""
+        # Face box points.
+        left_x = box[0]
+        top_y = box[1]
+        right_x = box[2]
+        bottom_y = box[3]
+        if right_x - left_x <= cols and bottom_y - top_y <= rows:
+            if left_x < 0:                  # left edge crossed, move right.
+                right_x += abs(left_x)
+                left_x = 0
+            if right_x > cols:              # right edge crossed, move left.
+                left_x -= (right_x - cols)
+                right_x = cols
+            if top_y < 0:                   # top edge crossed, move down.
+                bottom_y += abs(top_y)
+                top_y = 0
+            if bottom_y > rows:             # bottom edge crossed, move up.
+                top_y -= (bottom_y - rows)
+                bottom_y = rows
+            # Check if method 1 suceed.
+            if _check_box([left_x, top_y, right_x, bottom_y]):
+                print("Moving succeed!")
+                return [left_x, top_y, right_x, bottom_y]
+            else:
+                print("Moving failed.")
+                return None
+
+    def _shrink_box(box):
+        """Method 2: Try to shrink the box."""
+        # Face box points.
+        left_x = box[0]
+        top_y = box[1]
+        right_x = box[2]
+        bottom_y = box[3]
+        # The first step would be get the interlaced area.
+        if left_x < 0:                  # left edge crossed, set zero.
+            left_x = 0
+        if right_x > cols:              # right edge crossed, set max.
+            right_x = cols
+        if top_y < 0:                   # top edge crossed, set zero.
+            top_y = 0
+        if bottom_y > rows:             # bottom edge crossed, set max.
+            bottom_y = rows
+
+        # Then found out which is larger: the width or height. This will
+        # be used to decide in which dimention the size would be shrinked.
+        width = right_x - left_x
+        height = bottom_y - top_y
+        delta = abs(width - height)
+        if width > height:                  # x should be altered.
+            if left_x != 0 and right_x != cols:     # shrink from center.
+                left_x += int(delta / 2)
+                right_x -= int(delta / 2)
+                if delta % 2 == 1:
+                    right_x += 1
+            elif left_x == 0:                       # shrink from right.
+                right_x -= delta
+            else:                                   # shrink from left.
+                left_x += delta
+        else:                               # y should be altered.
+            if top_y != 0 and bottom_y != rows:     # shrink from center.
+                top_y += int(delta / 2)
+                bottom_y -= int(delta / 2)
+                if delta % 2 == 1:
+                    top_y += 1
+            elif top_y == 0:                        # shrink from bottom.
+                bottom_y -= delta
+            else:                                   # shrink from top.
+                top_y += delta
+
+        # Check if method 1 suceed.
+        if _check_box([left_x, top_y, right_x, bottom_y]):
+            print("Shrink succeed!")
+            return [left_x, top_y, right_x, bottom_y]
+        else:
+            print("Shrink failed")
+            return None
+
+    # First try to move the box.
+    box_moved = _move_box(facebox)
+
+    # If moving faild ,try to shrink.
+    if box_moved is not None:
+        return box_moved
+    else:
+        box_shrinked = _shrink_box(facebox)
+
+    # If shrink failed, return the original image.
+    if box_shrinked is not None:
+        return box_shrinked
+    else:
+        return [0, 0, cols, rows]
 
 
 def main():

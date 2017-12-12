@@ -140,10 +140,8 @@ def fit_box(image, points, facebox):
                 bottom_y = rows
             # Check if method 1 suceed.
             if _check_box([left_x, top_y, right_x, bottom_y]):
-                print("Moving succeed!")
                 return [left_x, top_y, right_x, bottom_y]
             else:
-                print("Moving failed.")
                 return None
 
     def _shrink_box(box):
@@ -191,10 +189,8 @@ def fit_box(image, points, facebox):
 
         # Check if method 1 suceed.
         if _check_box([left_x, top_y, right_x, bottom_y]):
-            print("Shrink succeed!")
             return [left_x, top_y, right_x, bottom_y]
         else:
-            print("Shrink failed")
             return None
 
     # First try to move the box.
@@ -202,14 +198,18 @@ def fit_box(image, points, facebox):
 
     # If moving faild ,try to shrink.
     if box_moved is not None:
+        print("Moving succeed!")
         return box_moved
     else:
+        print("Moving failed.")
         box_shrinked = _shrink_box(facebox)
 
     # If shrink failed, return the original image.
     if box_shrinked is not None:
+        print("Shrinking succeed!")
         return box_shrinked
     else:
+        print("Shrink failed, using original image.")
         return [0, 0, cols, rows]
 
 

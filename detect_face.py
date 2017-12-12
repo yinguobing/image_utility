@@ -44,24 +44,54 @@ def get_facebox(image=None, threshold=0.5):
     return confidences, faceboxes
 
 
-def draw_result(frame, confidences, faceboxes):
+def draw_result(image, confidences, faceboxes):
     """Draw the detection result on image"""
     for result in zip(confidences, faceboxes):
         conf = result[0]
         facebox = result[1]
 
-        cv.rectangle(frame, (facebox[0], facebox[1]), (facebox[2], facebox[3]),
-                 (0, 255, 0))
+        cv.rectangle(image, (facebox[0], facebox[1]),
+                     (facebox[2], facebox[3]), (0, 255, 0))
         label = "face: %.4f" % conf
         label_size, base_line = cv.getTextSize(
             label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
 
-        cv.rectangle(frame, (facebox[0], facebox[1] - label_size[1]),
+        cv.rectangle(image, (facebox[0], facebox[1] - label_size[1]),
                      (facebox[0] + label_size[0],
                       facebox[1] + base_line),
                      (255, 255, 255), cv.FILLED)
-        cv.putText(frame, label, (facebox[0], facebox[1]),
+        cv.putText(image, label, (facebox[0], facebox[1]),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+
+
+def get_square_box(faceboxes):
+    """Get the square boxes which are ready for CNN from the faceboxes"""
+    square_boxes = []
+    for facebox in faceboxes:
+        box_width = facebox[2] - facebox[0]
+        box_height = facebox[3] - facebox[1]
+
+        diff = box_height - box_width
+        delta = int(diff / 2)
+
+        left_top_x = facebox[0] - delta
+        left_top_y = facebox[1] + delta
+        right_bottom_x = facebox[2] + delta
+        right_bottom_y = facebox[3] + delta
+
+        if diff % 2 == 1:
+            right_bottom_x += 1
+
+        square_boxes.append(
+            [left_top_x, left_top_y, right_bottom_x, right_bottom_y])
+    return square_boxes
+
+
+def draw_square_box(image, faceboxes):
+    """Draw square boxes on image"""
+    for facebox in faceboxes:
+        cv.rectangle(image, (facebox[0], facebox[1]),
+                     (facebox[2], facebox[3]), (255, 255, 255))
 
 
 def main():

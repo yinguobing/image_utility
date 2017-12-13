@@ -102,3 +102,4 @@ ENV/
 face_detector/res10_300x300_ssd_iter_140000.caffemodel
 face_detector/deploy.prototxt
 tempCodeRunnerFile.py
+.vscode/launch.json

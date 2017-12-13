@@ -63,20 +63,20 @@ def draw_result(image, confidences, faceboxes):
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
 
-def get_square_box(faceboxes):
-    """Get the square boxes which are ready for CNN from the faceboxes"""
+def get_square_boxes(boxes):
+    """Get the square boxes which are ready for CNN from the boxes"""
     square_boxes = []
-    for facebox in faceboxes:
-        box_width = facebox[2] - facebox[0]
-        box_height = facebox[3] - facebox[1]
+    for box in boxes:
+        box_width = box[2] - box[0]
+        box_height = box[3] - box[1]
 
         diff = box_height - box_width
         delta = int(diff / 2)
 
-        left_top_x = facebox[0] - delta
-        left_top_y = facebox[1] + delta
-        right_bottom_x = facebox[2] + delta
-        right_bottom_y = facebox[3] + delta
+        left_top_x = box[0] - delta
+        left_top_y = box[1] + delta
+        right_bottom_x = box[2] + delta
+        right_bottom_y = box[3] + delta
 
         if diff % 2 == 1:
             right_bottom_x += 1

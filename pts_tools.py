@@ -75,6 +75,35 @@ def box_is_valid(image, points, box):
     return box_is_in_image and points_is_in_box and w_equal_h
 
 
+def fit_by_moving(box, image, points):
+    """Method 1: Try to move the box."""
+    rows = image.shape[0]
+    cols = image.shape[1]
+    # Face box points.
+    left_x = box[0]
+    top_y = box[1]
+    right_x = box[2]
+    bottom_y = box[3]
+    if right_x - left_x <= cols and bottom_y - top_y <= rows:
+        if left_x < 0:                  # left edge crossed, move right.
+            right_x += abs(left_x)
+            left_x = 0
+        if right_x > cols:              # right edge crossed, move left.
+            left_x -= (right_x - cols)
+            right_x = cols
+        if top_y < 0:                   # top edge crossed, move down.
+            bottom_y += abs(top_y)
+            top_y = 0
+        if bottom_y > rows:             # bottom edge crossed, move up.
+            top_y -= (bottom_y - rows)
+            bottom_y = rows
+        # Check if method 1 suceed.
+        if box_is_valid(image, points, [left_x, top_y, right_x, bottom_y]):
+            return [left_x, top_y, right_x, bottom_y]
+        else:
+            return None
+
+
 def preview(point_file):
     """
     Preview points on image.

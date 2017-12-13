@@ -51,16 +51,16 @@ def preview(point_file):
     # Read the image.
     head, tail = os.path.split(point_file)
     image_file = tail.split('.')[-2]
-    img_jpg = os.path.join(head, image_file+".jpg")
-    img_png = os.path.join(head, image_file+".png")
+    img_jpg = os.path.join(head, image_file + ".jpg")
+    img_png = os.path.join(head, image_file + ".png")
     if os.path.exists(img_jpg):
         img = cv2.imread(img_jpg)
     else:
         img = cv2.imread(img_png)
 
     # Get the face bounding boxes.
-    conf, faceboxes = fd.get_facebox(img, threshold=0.9)
-    fd.draw_result(img, conf, faceboxes)
+    conf, faceboxes = fd.get_facebox(img, threshold=0.5)
+    # fd.draw_result(img, conf, faceboxes)
 
     # Get the square boxs contains face.
     square_boxes = fd.get_square_box(faceboxes)
@@ -70,30 +70,46 @@ def preview(point_file):
     max_x = max([point[0] for point in raw_points])
     min_y = min([point[1] for point in raw_points])
     max_y = max([point[1] for point in raw_points])
-    for idx, box in enumerate(square_boxes):
-        if box[0] > min_x or box[1] > min_y or box[2] < max_x or box[3] < max_y:
-            del square_boxes[idx]
-    fd.draw_box(img, square_boxes)
-
-    # Check if fitting required.
-    rows = img.shape[0]
-    cols = img.shape[1]
+    valid_box = None
     for box in square_boxes:
-        if box[0] < 0 or box[1] < 0 or box[2] > cols or box[3] > rows:
-            fited_box = fd.fit_box(img, raw_points, square_boxes[0])
-            if fited_box is not None:
-                fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
+        if box[0] <= min_x and box[1] <= min_y and box[2] >= max_x and box[3] >= max_y:
+            valid_box = box
+            # fd.draw_box(img, [valid_box])
 
     # Draw the landmark points.
     draw_landmark_point(img, raw_points)
 
+    # Check if fitting required.
+    rows = img.shape[0]
+    cols = img.shape[1]
+    if valid_box is not None:
+        if valid_box[0] < 0 or valid_box[1] < 0 or valid_box[2] > cols or valid_box[3] > rows:
+            fited_box = fd.fit_box(img, raw_points, valid_box)
+            if fited_box is not None:
+                # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
+                face_area = img[fited_box[1]:fited_box[3],
+                                fited_box[0]:fited_box[2]]
+                area = cv2.resize(face_area, (512, 512))
+                cv2.imshow("face", area)
+                cv2.waitKey(30)
+        else:
+            valid_area = img[valid_box[1]:valid_box[3],
+                             valid_box[0]:valid_box[2]]
+            area = cv2.resize(valid_area, (512, 512))
+            cv2.imshow("face", area)
+            cv2.waitKey(30)
+    else:
+        print("Non-valid image:", head + tail)
+
     # Show in window.
-    width, height = img.shape[:2]
-    max_height = 640
-    if height > max_height:
-        img = cv2.resize(img, (max_height, int(width * max_height / height)))
-    cv2.imshow("preview", img)
-    cv2.waitKey(30)
+    # if len(square_boxes) != 1:
+    #     width, height = img.shape[:2]
+    #     max_height = 640
+    #     if height > max_height:
+    #         img = cv2.resize(
+    #             img, (max_height, int(width * max_height / height)))
+    #     cv2.imshow("preview", img)
+    #     cv2.waitKey()
 
 
 def main():

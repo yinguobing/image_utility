@@ -38,6 +38,29 @@ def draw_landmark_point(image, points):
             point[1])), 3, (0, 255, 0), -1, cv2.LINE_AA)
 
 
+def get_square_boxes(boxes):
+    """Get the square boxes which are ready for CNN from the boxes"""
+    square_boxes = []
+    for box in boxes:
+        box_width = box[2] - box[0]
+        box_height = box[3] - box[1]
+
+        diff = box_height - box_width
+        delta = int(diff / 2)
+
+        left_top_x = box[0] - delta
+        left_top_y = box[1] + delta
+        right_bottom_x = box[2] + delta
+        right_bottom_y = box[3] + delta
+
+        if diff % 2 == 1:
+            right_bottom_x += 1
+
+        square_boxes.append(
+            [left_top_x, left_top_y, right_bottom_x, right_bottom_y])
+    return square_boxes
+
+
 def get_minimal_box(points):
     """Get the minimal bounding box of a group of points"""
     min_x = min([point[0] for point in points])
@@ -205,7 +228,7 @@ def preview(point_file):
     # fd.draw_result(img, conf, faceboxes)
 
     # Get the square boxs contains face.
-    square_boxes = fd.get_square_boxes(faceboxes)
+    square_boxes = get_square_boxes(faceboxes)
 
     # Remove false positive boxes.
     valid_box = None

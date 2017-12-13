@@ -50,10 +50,29 @@ def get_minimal_box(points):
 def points_in_box(points, box):
     """Check if box contains all the points"""
     minimal_box = get_minimal_box(points)
-    if box[0] > minimal_box[0] and box[1] > minimal_box[1] and box[2] < minimal_box[2] and box[3] < minimal_box[3]:
-        return False
-    else:
-        return True
+    return box[0] > minimal_box[0] or box[1] > minimal_box[1] or box[2] < minimal_box[2] or box[3] < minimal_box[3]
+
+
+def box_in_image(box, image):
+    """Check if the box is in image"""
+    rows = image.shape[0]
+    cols = image.shape[1]
+    return box[0] >= 0 or box[1] >= 0 or box[2] <= cols or box[3] <= rows
+
+
+def box_is_valid(image, points, box):
+    """Check if box is valid."""
+    # Box contains all the points.
+    points_is_in_box = points_in_box(points, box)
+
+    # Box is in image.
+    box_is_in_image = box_in_image(box, image)
+
+    # Box is square.
+    w_equal_h = (box[2] - box[0]) == (box[3] - box[1])
+
+    # Return the result.
+    return box_is_in_image and points_is_in_box and w_equal_h
 
 
 def preview(point_file):

@@ -50,14 +50,14 @@ def get_minimal_box(points):
 def points_in_box(points, box):
     """Check if box contains all the points"""
     minimal_box = get_minimal_box(points)
-    return box[0] > minimal_box[0] or box[1] > minimal_box[1] or box[2] < minimal_box[2] or box[3] < minimal_box[3]
+    return box[0] <= minimal_box[0] and box[1] <= minimal_box[1] and box[2] >= minimal_box[2] and box[3] >= minimal_box[3]
 
 
 def box_in_image(box, image):
     """Check if the box is in image"""
     rows = image.shape[0]
     cols = image.shape[1]
-    return box[0] >= 0 or box[1] >= 0 or box[2] <= cols or box[3] <= rows
+    return box[0] >= 0 and box[1] >= 0 and box[2] <= cols and box[3] <= rows
 
 
 def box_is_valid(image, points, box):
@@ -75,15 +75,15 @@ def box_is_valid(image, points, box):
     return box_is_in_image and points_is_in_box and w_equal_h
 
 
-def fit_by_moving(box, image, points):
+def fit_by_moving(box, rows, cols):
     """Method 1: Try to move the box."""
-    rows = image.shape[0]
-    cols = image.shape[1]
     # Face box points.
     left_x = box[0]
     top_y = box[1]
     right_x = box[2]
     bottom_y = box[3]
+
+    # Check if moving is possible.
     if right_x - left_x <= cols and bottom_y - top_y <= rows:
         if left_x < 0:                  # left edge crossed, move right.
             right_x += abs(left_x)
@@ -97,20 +97,18 @@ def fit_by_moving(box, image, points):
         if bottom_y > rows:             # bottom edge crossed, move up.
             top_y -= (bottom_y - rows)
             bottom_y = rows
-        # Check if method 1 suceed.
-        if box_is_valid(image, points, [left_x, top_y, right_x, bottom_y]):
-            return [left_x, top_y, right_x, bottom_y]
-        else:
-            return None
+
+    return [left_x, top_y, right_x, bottom_y]
 
 
-def fit_by_shrinking(box, image, points):
+def fit_by_shrinking(box, rows, cols):
     """Method 2: Try to shrink the box."""
     # Face box points.
     left_x = box[0]
     top_y = box[1]
     right_x = box[2]
     bottom_y = box[3]
+
     # The first step would be get the interlaced area.
     if left_x < 0:                  # left edge crossed, set zero.
         left_x = 0
@@ -126,6 +124,7 @@ def fit_by_shrinking(box, image, points):
     width = right_x - left_x
     height = bottom_y - top_y
     delta = abs(width - height)
+    # Find out which dimention should be altered.
     if width > height:                  # x should be altered.
         if left_x != 0 and right_x != cols:     # shrink from center.
             left_x += int(delta / 2)
@@ -147,11 +146,7 @@ def fit_by_shrinking(box, image, points):
         else:                                   # shrink from top.
             top_y += delta
 
-    # Check if method 1 suceed.
-    if box_is_valid(image, points, [left_x, top_y, right_x, bottom_y]):
-        return [left_x, top_y, right_x, bottom_y]
-    else:
-        return None
+    return [left_x, top_y, right_x, bottom_y]
 
 
 def fit_box(box, image, points):
@@ -160,19 +155,22 @@ def fit_box(box, image, points):
     - Inside the image.
     - Contains all the points.
     """
+    rows = image.shape[0]
+    cols = image.shape[1]
+
     # First try to move the box.
-    box_moved = fit_by_moving(box, image, points)
+    box_moved = fit_by_moving(box, rows, cols)
 
     # If moving faild ,try to shrink.
-    if box_moved is not None:
+    if box_is_valid(image, points, box_moved):
         print("Moving succeed!")
         return box_moved
     else:
         print("Moving failed.")
-        box_shrinked = fit_by_shrinking(box, image, points)
+        box_shrinked = fit_by_shrinking(box, rows, cols)
 
     # If shrink failed, return the original image.
-    if box_shrinked is not None:
+    if box_is_valid(image, points, box_shrinked):
         print("Shrinking succeed!")
         return box_shrinked
     else:
@@ -184,6 +182,8 @@ def preview(point_file):
     """
     Preview points on image.
     """
+    print(point_file)
+
     # Read the points from file.
     raw_points = read_points(point_file)
 
@@ -218,11 +218,9 @@ def preview(point_file):
     draw_landmark_point(img, raw_points)
 
     # Check if fitting required.
-    rows = img.shape[0]
-    cols = img.shape[1]
     if valid_box is not None:
-        if valid_box[0] < 0 or valid_box[1] < 0 or valid_box[2] > cols or valid_box[3] > rows:
-            fited_box = fd.fit_box(img, raw_points, valid_box)
+        if box_in_image(valid_box, img) is False:
+            fited_box = fit_box(valid_box, img, raw_points)
             if fited_box is not None:
                 # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
                 face_area = img[fited_box[1]:fited_box[3],
@@ -237,7 +235,7 @@ def preview(point_file):
             cv2.imshow("face", area)
             cv2.waitKey(30)
     else:
-        print("Non-valid image:", head + tail)
+        print("No valid face found:", head + tail)
 
     # Show in window.
     # if len(square_boxes) != 1:

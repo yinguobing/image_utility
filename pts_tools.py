@@ -38,6 +38,24 @@ def draw_landmark_point(image, points):
             point[1])), 3, (0, 255, 0), -1, cv2.LINE_AA)
 
 
+def get_minimal_box(points):
+    """Get the minimal bounding box of a group of points"""
+    min_x = min([point[0] for point in points])
+    max_x = max([point[0] for point in points])
+    min_y = min([point[1] for point in points])
+    max_y = max([point[1] for point in points])
+    return [min_x, min_y, max_x, max_y]
+
+
+def points_in_box(points, box):
+    """Check if box contains all the points"""
+    minimal_box = get_minimal_box(points)
+    if box[0] > minimal_box[0] and box[1] > minimal_box[1] and box[2] < minimal_box[2] and box[3] < minimal_box[3]:
+        return False
+    else:
+        return True
+
+
 def preview(point_file):
     """
     Preview points on image.
@@ -63,16 +81,12 @@ def preview(point_file):
     # fd.draw_result(img, conf, faceboxes)
 
     # Get the square boxs contains face.
-    square_boxes = fd.get_square_box(faceboxes)
+    square_boxes = fd.get_square_boxes(faceboxes)
 
     # Remove false positive boxes.
-    min_x = min([point[0] for point in raw_points])
-    max_x = max([point[0] for point in raw_points])
-    min_y = min([point[1] for point in raw_points])
-    max_y = max([point[1] for point in raw_points])
     valid_box = None
     for box in square_boxes:
-        if box[0] <= min_x and box[1] <= min_y and box[2] >= max_x and box[3] >= max_y:
+        if points_in_box(raw_points, box):
             valid_box = box
             # fd.draw_box(img, [valid_box])
 

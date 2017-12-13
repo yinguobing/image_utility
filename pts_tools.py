@@ -104,6 +104,56 @@ def fit_by_moving(box, image, points):
             return None
 
 
+def fit_by_shrinking(box, image, points):
+    """Method 2: Try to shrink the box."""
+    # Face box points.
+    left_x = box[0]
+    top_y = box[1]
+    right_x = box[2]
+    bottom_y = box[3]
+    # The first step would be get the interlaced area.
+    if left_x < 0:                  # left edge crossed, set zero.
+        left_x = 0
+    if right_x > cols:              # right edge crossed, set max.
+        right_x = cols
+    if top_y < 0:                   # top edge crossed, set zero.
+        top_y = 0
+    if bottom_y > rows:             # bottom edge crossed, set max.
+        bottom_y = rows
+
+    # Then found out which is larger: the width or height. This will
+    # be used to decide in which dimention the size would be shrinked.
+    width = right_x - left_x
+    height = bottom_y - top_y
+    delta = abs(width - height)
+    if width > height:                  # x should be altered.
+        if left_x != 0 and right_x != cols:     # shrink from center.
+            left_x += int(delta / 2)
+            right_x -= int(delta / 2)
+            if delta % 2 == 1:
+                right_x += 1
+        elif left_x == 0:                       # shrink from right.
+            right_x -= delta
+        else:                                   # shrink from left.
+            left_x += delta
+    else:                               # y should be altered.
+        if top_y != 0 and bottom_y != rows:     # shrink from center.
+            top_y += int(delta / 2)
+            bottom_y -= int(delta / 2)
+            if delta % 2 == 1:
+                top_y += 1
+        elif top_y == 0:                        # shrink from bottom.
+            bottom_y -= delta
+        else:                                   # shrink from top.
+            top_y += delta
+
+    # Check if method 1 suceed.
+    if box_is_valid(image, points, [left_x, top_y, right_x, bottom_y]):
+        return [left_x, top_y, right_x, bottom_y]
+    else:
+        return None
+
+
 def preview(point_file):
     """
     Preview points on image.

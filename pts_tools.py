@@ -154,6 +154,32 @@ def fit_by_shrinking(box, image, points):
         return None
 
 
+def fit_box(box, image, points):
+    """Try to fit the box, make sure it satisfy following conditions:
+    - A square.
+    - Inside the image.
+    - Contains all the points.
+    """
+    # First try to move the box.
+    box_moved = fit_by_moving(box, image, points)
+
+    # If moving faild ,try to shrink.
+    if box_moved is not None:
+        print("Moving succeed!")
+        return box_moved
+    else:
+        print("Moving failed.")
+        box_shrinked = fit_by_shrinking(box, image, points)
+
+    # If shrink failed, return the original image.
+    if box_shrinked is not None:
+        print("Shrinking succeed!")
+        return box_shrinked
+    else:
+        print("Shrink failed, using minimal bounding box.")
+        return get_minimal_box(points)
+
+
 def preview(point_file):
     """
     Preview points on image.

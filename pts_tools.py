@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 import cv2
-import detect_face as fd
+import face_detector as fd
 
 DATA_DIR = "/home/robin/Documents/landmark/dataset"
 

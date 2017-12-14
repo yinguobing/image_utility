@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/lfpw"
+DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/044"
 
 
 def read_points(file_name=None):
@@ -243,7 +243,7 @@ def get_valid_box(image, points):
     # Try method 1 first.
     # Get the face bounding boxes.
     conf, faceboxes = fd.get_facebox(image, threshold=0.5)
-    # fd.draw_result(img, conf, faceboxes)
+    # fd.draw_result(image, conf, faceboxes)
 
     # Try to move the facebox to a better location and make them square.
     square_boxes = []
@@ -304,7 +304,7 @@ def preview(point_file):
 
     # Get the valid facebox.
     facebox = get_valid_box(img, raw_points)
-    # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
+    # fd.draw_box(img, [facebox], box_color=(255, 0, 0))
 
     # Extract valid image area.
     face_area = img[facebox[1]:facebox[3],

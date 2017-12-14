@@ -134,7 +134,7 @@ def box_is_valid(image, points, box):
     return box_is_in_image and points_is_in_box and w_equal_h
 
 
-def fit_by_moving(box, rows, cols):
+def fit_by_shifting(box, rows, cols):
     """Method 1: Try to move the box."""
     # Face box points.
     left_x = box[0]
@@ -218,7 +218,7 @@ def fit_box(box, image, points):
     cols = image.shape[1]
 
     # First try to move the box.
-    box_moved = fit_by_moving(box, rows, cols)
+    box_moved = fit_by_shifting(box, rows, cols)
 
     # If moving faild ,try to shrink.
     if box_is_valid(image, points, box_moved):

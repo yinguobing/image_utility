@@ -86,6 +86,15 @@ def get_minimal_box(points):
     return [min_x, min_y, max_x, max_y]
 
 
+def move_box(box, offset):
+    """Move the box to direction specified by offset"""
+    left_x = box[0] + offset[0]
+    top_y = box[1] + offset[1]
+    right_x = box[2] + offset[0]
+    bottom_y = box[3] + offset[1]
+    return [left_x, top_y, right_x, bottom_y]
+
+
 def expand_box(square_box, scale_ratio=1.2):
     """Scale up the box"""
     assert (scale_ratio >= 1), "Scale ration should be greater than 1."

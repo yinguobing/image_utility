@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/"
+DATA_DIR = "/home/robin/Documents/landmark/dataset/lfpw"
 
 
 def read_points(file_name=None):
@@ -229,6 +229,7 @@ def fit_box(box, image, points):
     else:
         # Worst situation.
         print("All failed, using minimal bounding box.")
+        cv2.imshow("worst situation", image)
         return get_minimal_box(points)
 
 

@@ -38,40 +38,37 @@ def draw_landmark_point(image, points):
             point[1])), 3, (0, 255, 0), -1, cv2.LINE_AA)
 
 
-def get_square_boxes(boxes):
+def get_square_box(box):
     """Get the square boxes which are ready for CNN from the boxes"""
-    square_boxes = []
-    for box in boxes:
-        left_x = box[0]
-        top_y = box[1]
-        right_x = box[2]
-        bottom_y = box[3]
+    left_x = box[0]
+    top_y = box[1]
+    right_x = box[2]
+    bottom_y = box[3]
 
-        box_width = right_x - left_x
-        box_height = bottom_y - top_y
+    box_width = right_x - left_x
+    box_height = bottom_y - top_y
 
-        # Check if box is already a square. If not, make it a square.
-        diff = box_height - box_width
-        delta = int(abs(diff) / 2)
+    # Check if box is already a square. If not, make it a square.
+    diff = box_height - box_width
+    delta = int(abs(diff) / 2)
 
-        if diff == 0:                   # Already a square.
-            square_boxes.append(box)
-        elif diff > 0:                  # Height > width, a slim box.
-            left_x -= delta
-            right_x += delta
-            if diff % 2 == 1:
-                right_x += 1
-        else:                           # Width > height, a short box.
-            top_y -= delta
-            bottom_y += delta
-            if diff % 2 == 1:
-                bottom_y += 1
+    if diff == 0:                   # Already a square.
+        return box
+    elif diff > 0:                  # Height > width, a slim box.
+        left_x -= delta
+        right_x += delta
+        if diff % 2 == 1:
+            right_x += 1
+    else:                           # Width > height, a short box.
+        top_y -= delta
+        bottom_y += delta
+        if diff % 2 == 1:
+            bottom_y += 1
 
-        # Make sure box is always square.
-        assert ((right_x - left_x) == (bottom_y - top_y)), 'Box is not square.'
+    # Make sure box is always square.
+    assert ((right_x - left_x) == (bottom_y - top_y)), 'Box is not square.'
 
-        square_boxes.append([left_x, top_y, right_x, bottom_y])
-    return square_boxes
+    return [left_x, top_y, right_x, bottom_y]
 
 
 def get_minimal_box(points):
@@ -248,8 +245,16 @@ def get_valid_box(image, points):
     conf, faceboxes = fd.get_facebox(image, threshold=0.5)
     # fd.draw_result(img, conf, faceboxes)
 
-    # Get the square boxs contains face.
-    square_boxes = get_square_boxes(faceboxes)
+    # Try to move the facebox to a better location and make them square.
+    square_boxes = []
+    for box in faceboxes:
+        # Move box down.
+        diff_height_width = (box[3] - box[1]) - (box[2] - box[0])
+        offset_y = int(abs(diff_height_width / 2))
+        box_moved = move_box(box, [0, offset_y])
+
+        # Make them square.
+        square_boxes.append(get_square_box(box_moved))
 
     # Remove false positive boxes.
     valid_box = None
@@ -269,7 +274,7 @@ def get_valid_box(image, points):
             return valid_box
     else:                           # Method 0
         min_box = get_minimal_box(points)
-        sqr_box = get_square_boxes([min_box])[0]    # Only one face here.
+        sqr_box = get_square_box(min_box)
         epd_box = expand_box(sqr_box)
         if box_in_image(epd_box, image) is False:       # Fitting required.
             return fit_box(epd_box, image, points)

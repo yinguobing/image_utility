@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14"
+DATA_DIR = "/home/robin/Documents/landmark/dataset/"
 
 
 def read_points(file_name=None):
@@ -221,7 +221,6 @@ def fit_box(box, image, points):
     if box_is_valid(image, points, box_moved):
         return box_moved
     else:
-        print("Moving failed.")
         box_shrinked = fit_by_shrinking(box, rows, cols)
 
     # If shrink failed, return the original image.
@@ -229,7 +228,7 @@ def fit_box(box, image, points):
         return box_shrinked
     else:
         # Worst situation.
-        print("Shrink failed, using minimal bounding box.")
+        print("All failed, using minimal bounding box.")
         return get_minimal_box(points)
 
 
@@ -316,17 +315,17 @@ def preview(point_file):
     if width != height:
         print('opps!', width, height)
     if (width != 128) or (height != 128):
-        face_area = cv2.resize(face_area, (128, 128))
+        face_area = cv2.resize(face_area, (256, 256))
 
     # Image file to be written.
     new_dir = "/home/robin/Documents/landmark/dataset/223K/300vw"
     subset_name = head.split('/')[-2]
     new_file_url = os.path.join(
         new_dir, "300vw-" + subset_name + "-" + image_file + ".jpg")
-    print(new_file_url)
+    # print(new_file_url)
 
     cv2.imshow("face", face_area)
-    if cv2.waitKey(30) == 27:
+    if cv2.waitKey(10) == 27:
         cv2.waitKey()
 
     # Show whole image in window.

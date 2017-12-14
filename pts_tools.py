@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset"
+DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14"
 
 
 def read_points(file_name=None):
@@ -42,22 +42,35 @@ def get_square_boxes(boxes):
     """Get the square boxes which are ready for CNN from the boxes"""
     square_boxes = []
     for box in boxes:
-        box_width = box[2] - box[0]
-        box_height = box[3] - box[1]
+        left_x = box[0]
+        top_y = box[1]
+        right_x = box[2]
+        bottom_y = box[3]
 
+        box_width = right_x - left_x
+        box_height = bottom_y - top_y
+
+        # Check if box is already a square. If not, make it a square.
         diff = box_height - box_width
-        delta = int(diff / 2)
+        delta = int(abs(diff) / 2)
 
-        left_top_x = box[0] - delta
-        left_top_y = box[1] + delta
-        right_bottom_x = box[2] + delta
-        right_bottom_y = box[3] + delta
+        if diff == 0:                   # Already a square.
+            square_boxes.append(box)
+        elif diff > 0:                  # Height > width, a slim box.
+            left_x -= delta
+            right_x += delta
+            if diff % 2 == 1:
+                right_x += 1
+        else:                           # Width > height, a short box.
+            top_y -= delta
+            bottom_y += delta
+            if diff % 2 == 1:
+                bottom_y += 1
 
-        if diff % 2 == 1:
-            right_bottom_x += 1
+        # Make sure box is always square.
+        assert ((right_x - left_x) == (bottom_y - top_y)), 'Box is not square.'
 
-        square_boxes.append(
-            [left_top_x, left_top_y, right_bottom_x, right_bottom_y])
+        square_boxes.append([left_x, top_y, right_x, bottom_y])
     return square_boxes
 
 
@@ -275,12 +288,30 @@ def preview(point_file):
     else:
         img = cv2.imread(img_png)
 
+    # Get the valid facebox.
     facebox = get_valid_box(img, raw_points)
     # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
+
+    # Extract valid image area.
     face_area = img[facebox[1]:facebox[3],
                     facebox[0]: facebox[2]]
-    area = cv2.resize(face_area, (128, 128))
-    cv2.imshow("face", area)
+
+    # Check if resize is needed.
+    width = facebox[2] - facebox[0]
+    height = facebox[3] - facebox[1]
+    if width != height:
+        print('opps!', width, height)
+    if (width != 128) or (height != 128):
+        face_area = cv2.resize(face_area, (128, 128))
+
+    # Image file to be written.
+    new_dir = "/home/robin/Documents/landmark/dataset/223K/300vw"
+    subset_name = head.split('/')[-2]
+    new_file_url = os.path.join(
+        new_dir, "300vw-" + subset_name + "-" + image_file + ".jpg")
+    print(new_file_url)
+
+    cv2.imshow("face", face_area)
     if cv2.waitKey(30) == 27:
         cv2.waitKey()
 

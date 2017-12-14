@@ -279,9 +279,10 @@ def preview(point_file):
     # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
     face_area = img[facebox[1]:facebox[3],
                     facebox[0]: facebox[2]]
-    area = cv2.resize(face_area, (512, 512))
+    area = cv2.resize(face_area, (128, 128))
     cv2.imshow("face", area)
-    cv2.waitKey(30)
+    if cv2.waitKey(30) == 27:
+        cv2.waitKey()
 
     # Show whole image in window.
     # width, height = img.shape[:2]

@@ -62,12 +62,26 @@ def get_square_boxes(boxes):
 
 
 def get_minimal_box(points):
-    """Get the minimal bounding box of a group of points"""
-    min_x = min([point[0] for point in points])
-    max_x = max([point[0] for point in points])
-    min_y = min([point[1] for point in points])
-    max_y = max([point[1] for point in points])
+    """
+    Get the minimal bounding box of a group of points.
+    The coordinates are also converted to int numbers.
+    """
+    min_x = int(min([point[0] for point in points]))
+    max_x = int(max([point[0] for point in points]))
+    min_y = int(min([point[1] for point in points]))
+    max_y = int(max([point[1] for point in points]))
     return [min_x, min_y, max_x, max_y]
+
+
+def expand_box(square_box, scale_ratio=1.2):
+    """Scale up the box"""
+    assert (scale_ratio >= 1), "Scale ration should be greater than 1."
+    delta = int((square_box[2] - square_box[0]) * (scale_ratio - 1) / 2)
+    left_x = square_box[0] - delta
+    left_y = square_box[1] - delta
+    right_x = square_box[2] + delta
+    right_y = square_box[3] + delta
+    return [left_x, left_y, right_x, right_y]
 
 
 def points_in_box(points, box):
@@ -186,7 +200,6 @@ def fit_box(box, image, points):
 
     # If moving faild ,try to shrink.
     if box_is_valid(image, points, box_moved):
-        print("Moving succeed!")
         return box_moved
     else:
         print("Moving failed.")
@@ -194,19 +207,58 @@ def fit_box(box, image, points):
 
     # If shrink failed, return the original image.
     if box_is_valid(image, points, box_shrinked):
-        print("Shrinking succeed!")
         return box_shrinked
     else:
+        # Worst situation.
         print("Shrink failed, using minimal bounding box.")
         return get_minimal_box(points)
+
+
+def get_valid_box(image, points):
+    """
+    Try to get a valid face box which meets the requirments.
+    The function follows these steps:
+        1. Try method 1, if failed:
+        2. Try method 0.
+    """
+    # Try method 1 first.
+    # Get the face bounding boxes.
+    conf, faceboxes = fd.get_facebox(image, threshold=0.5)
+    # fd.draw_result(img, conf, faceboxes)
+
+    # Get the square boxs contains face.
+    square_boxes = get_square_boxes(faceboxes)
+
+    # Remove false positive boxes.
+    valid_box = None
+    for box in square_boxes:
+        if points_in_box(points, box):
+            valid_box = box
+            # fd.draw_box(img, [valid_box])
+
+    # Draw the landmark points.
+    draw_landmark_point(image, points)
+
+    # Check if fitting required.
+    if valid_box is not None:       # Method 1
+        if box_in_image(valid_box, image) is False:     # Fitting required.
+            return fit_box(valid_box, image, points)
+        else:
+            return valid_box
+    else:                           # Method 0
+        min_box = get_minimal_box(points)
+        sqr_box = get_square_boxes([min_box])[0]    # Only one face here.
+        epd_box = expand_box(sqr_box)
+        if box_in_image(epd_box, image) is False:       # Fitting required.
+            return fit_box(epd_box, image, points)
+        else:
+            return epd_box
 
 
 def preview(point_file):
     """
     Preview points on image.
     """
-    print(point_file)
-
     # Read the points from file.
     raw_points = read_points(point_file)
 
@@ -223,52 +275,22 @@ def preview(point_file):
     else:
         img = cv2.imread(img_png)
 
-    # Get the face bounding boxes.
-    conf, faceboxes = fd.get_facebox(img, threshold=0.5)
-    # fd.draw_result(img, conf, faceboxes)
+    facebox = get_valid_box(img, raw_points)
+    # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
+    face_area = img[facebox[1]:facebox[3],
+                    facebox[0]: facebox[2]]
+    area = cv2.resize(face_area, (512, 512))
+    cv2.imshow("face", area)
+    cv2.waitKey(30)
 
-    # Get the square boxs contains face.
-    square_boxes = get_square_boxes(faceboxes)
-
-    # Remove false positive boxes.
-    valid_box = None
-    for box in square_boxes:
-        if points_in_box(raw_points, box):
-            valid_box = box
-            # fd.draw_box(img, [valid_box])
-
-    # Draw the landmark points.
-    draw_landmark_point(img, raw_points)
-
-    # Check if fitting required.
-    if valid_box is not None:
-        if box_in_image(valid_box, img) is False:
-            fited_box = fit_box(valid_box, img, raw_points)
-            if fited_box is not None:
-                # fd.draw_box(img, [fited_box], box_color=(255, 0, 0))
-                face_area = img[fited_box[1]:fited_box[3],
-                                fited_box[0]:fited_box[2]]
-                area = cv2.resize(face_area, (512, 512))
-                cv2.imshow("face", area)
-                cv2.waitKey(30)
-        else:
-            valid_area = img[valid_box[1]:valid_box[3],
-                             valid_box[0]:valid_box[2]]
-            area = cv2.resize(valid_area, (512, 512))
-            cv2.imshow("face", area)
-            cv2.waitKey(30)
-    else:
-        print("No valid face found:", head + tail)
-
-    # Show in window.
-    # if len(square_boxes) != 1:
-    #     width, height = img.shape[:2]
-    #     max_height = 640
-    #     if height > max_height:
-    #         img = cv2.resize(
-    #             img, (max_height, int(width * max_height / height)))
-    #     cv2.imshow("preview", img)
-    #     cv2.waitKey()
+    # Show whole image in window.
+    # width, height = img.shape[:2]
+    # max_height = 640
+    # if height > max_height:
+    #     img = cv2.resize(
+    #         img, (max_height, int(width * max_height / height)))
+    # cv2.imshow("preview", img)
+    # cv2.waitKey()
 
 
 def main():

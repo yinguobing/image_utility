@@ -9,7 +9,8 @@ import numpy as np
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/044"
+DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/557"
+INVALID = 0
 
 
 def read_points(file_name=None):
@@ -228,8 +229,8 @@ def fit_box(box, image, points):
         return box_shrinked
     else:
         # Worst situation.
-        print("All failed, using minimal bounding box.")
-        cv2.imshow("worst situation", image)
+        # print("All failed, using minimal bounding box.")
+        # cv2.imshow("worst situation", image)
         return get_minimal_box(points)
 
 
@@ -302,6 +303,22 @@ def preview(point_file):
     else:
         img = cv2.imread(img_png)
 
+    # Fast check: all points are in image.
+    global INVALID
+    min_box = get_minimal_box(raw_points)
+    if box_in_image(min_box, img) is False:
+        print("pts file is invalid:", point_file)
+        draw_landmark_point(img, raw_points)
+        INVALID += 1
+        width, height = img.shape[:2]
+        max_height = 640
+        if height > max_height:
+            img = cv2.resize(
+                img, (max_height, int(width * max_height / height)))
+        cv2.imshow("preview", img)
+        cv2.waitKey(30)
+        return None
+
     # Get the valid facebox.
     facebox = get_valid_box(img, raw_points)
     # fd.draw_box(img, [facebox], box_color=(255, 0, 0))
@@ -313,8 +330,8 @@ def preview(point_file):
     # Check if resize is needed.
     width = facebox[2] - facebox[0]
     height = facebox[3] - facebox[1]
-    if width != height:
-        print('opps!', width, height)
+    # if width != height:
+    #     print('opps!', width, height)
     if (width != 128) or (height != 128):
         face_area = cv2.resize(face_area, (256, 256))
 
@@ -353,6 +370,9 @@ def main():
     # Show the image one by one.
     for file_name in pts_file_list:
         preview(file_name)
+
+    global INVALID
+    print("Invalid files:", INVALID)
 
 
 if __name__ == "__main__":

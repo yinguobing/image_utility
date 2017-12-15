@@ -36,6 +36,14 @@ def draw_landmark_point(image, points):
             point[1])), 3, (0, 255, 0), -1, cv2.LINE_AA)
 
 
+def points_are_valid(points, image):
+    """Check if all points are in image"""
+    min_box = get_minimal_box(points)
+    if box_in_image(min_box, image) is True:
+        return True
+    return False
+
+
 def get_square_box(box):
     """Get the square boxes which are ready for CNN from the boxes"""
     left_x = box[0]
@@ -293,17 +301,7 @@ def preview(point_file):
         img = cv2.imread(img_png)
 
     # Fast check: all points are in image.
-    min_box = get_minimal_box(raw_points)
-    if box_in_image(min_box, img) is False:
-        print("pts file is invalid:", point_file)
-        draw_landmark_point(img, raw_points)
-        width, height = img.shape[:2]
-        max_height = 640
-        if height > max_height:
-            img = cv2.resize(
-                img, (max_height, int(width * max_height / height)))
-        cv2.imshow("Invalid", img)
-        cv2.waitKey(30)
+    if points_are_valid(raw_points, img) is False:
         return None
 
     # Get the valid facebox.

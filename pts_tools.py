@@ -185,19 +185,15 @@ def fit_by_shrinking(box, rows, cols):
     if width > height:                  # x should be altered.
         if left_x != 0 and right_x != cols:     # shrink from center.
             left_x += int(delta / 2)
-            right_x -= int(delta / 2)
-            if delta % 2 == 1:
-                right_x += 1
+            right_x -= int(delta / 2) + delta % 2
         elif left_x == 0:                       # shrink from right.
             right_x -= delta
         else:                                   # shrink from left.
             left_x += delta
     else:                               # y should be altered.
         if top_y != 0 and bottom_y != rows:     # shrink from center.
-            top_y += int(delta / 2)
+            top_y += int(delta / 2) + delta % 2
             bottom_y -= int(delta / 2)
-            if delta % 2 == 1:
-                top_y += 1
         elif top_y == 0:                        # shrink from bottom.
             bottom_y -= delta
         else:                                   # shrink from top.

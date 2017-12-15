@@ -8,7 +8,6 @@ import cv2
 import face_detector as fd
 
 DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/557"
-INVALID = 0
 
 
 def read_points(file_name=None):
@@ -363,8 +362,6 @@ def main():
     # Show the image one by one.
     for file_name in pts_file_list:
         preview(file_name)
-
-    print("Invalid files:", INVALID)
 
 
 if __name__ == "__main__":

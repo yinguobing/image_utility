@@ -39,7 +39,7 @@ def draw_landmark_point(image, points):
 def points_are_valid(points, image):
     """Check if all points are in image"""
     min_box = get_minimal_box(points)
-    if box_in_image(min_box, image) is True:
+    if box_in_image(min_box, image):
         return True
     return False
 

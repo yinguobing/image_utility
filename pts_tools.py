@@ -105,7 +105,10 @@ def expand_box(square_box, scale_ratio=1.2):
 def points_in_box(points, box):
     """Check if box contains all the points"""
     minimal_box = get_minimal_box(points)
-    return box[0] <= minimal_box[0] and box[1] <= minimal_box[1] and box[2] >= minimal_box[2] and box[3] >= minimal_box[3]
+    return box[0] <= minimal_box[0] and \
+        box[1] <= minimal_box[1] and \
+        box[2] >= minimal_box[2] and \
+        box[3] >= minimal_box[3]
 
 
 def box_in_image(box, image):
@@ -296,12 +299,10 @@ def preview(point_file):
         img = cv2.imread(img_png)
 
     # Fast check: all points are in image.
-    global INVALID
     min_box = get_minimal_box(raw_points)
     if box_in_image(min_box, img) is False:
         print("pts file is invalid:", point_file)
         draw_landmark_point(img, raw_points)
-        INVALID += 1
         width, height = img.shape[:2]
         max_height = 640
         if height > max_height:
@@ -363,7 +364,6 @@ def main():
     for file_name in pts_file_list:
         preview(file_name)
 
-    global INVALID
     print("Invalid files:", INVALID)
 
 

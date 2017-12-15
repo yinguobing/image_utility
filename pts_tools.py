@@ -221,11 +221,11 @@ def fit_box(box, image, points):
     # If shrink failed, return the original image.
     if box_is_valid(image, points, box_shrinked):
         return box_shrinked
-    else:
-        # Worst situation.
-        # print("All failed, using minimal bounding box.")
-        # cv2.imshow("worst situation", image)
-        return get_minimal_box(points)
+
+    # Finally, Worst situation.
+    # print("All failed, using minimal bounding box.")
+    # cv2.imshow("worst situation", image)
+    return get_minimal_box(points)
 
 
 def get_valid_box(image, points):
@@ -265,16 +265,14 @@ def get_valid_box(image, points):
     if valid_box is not None:       # Method 1
         if box_in_image(valid_box, image) is False:     # Fitting required.
             return fit_box(valid_box, image, points)
-        else:
-            return valid_box
+        return valid_box
     else:                           # Method 0
         min_box = get_minimal_box(points)
         sqr_box = get_square_box(min_box)
         epd_box = expand_box(sqr_box)
         if box_in_image(epd_box, image) is False:       # Fitting required.
             return fit_box(epd_box, image, points)
-        else:
-            return epd_box
+        return epd_box
 
 
 def preview(point_file):

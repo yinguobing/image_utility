@@ -92,7 +92,7 @@ def move_box(box, offset):
 
 def expand_box(square_box, scale_ratio=1.2):
     """Scale up the box"""
-    assert (scale_ratio >= 1), "Scale ration should be greater than 1."
+    assert (scale_ratio >= 1), "Scale ratio should be greater than 1."
     delta = int((square_box[2] - square_box[0]) * (scale_ratio - 1) / 2)
     left_x = square_box[0] - delta
     left_y = square_box[1] - delta

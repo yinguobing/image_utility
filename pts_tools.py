@@ -4,8 +4,6 @@ This script shows how to read iBUG pts file and draw all the landmark points on 
 
 import os
 
-import numpy as np
-
 import cv2
 import face_detector as fd
 

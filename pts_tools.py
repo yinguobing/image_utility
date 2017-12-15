@@ -22,8 +22,8 @@ def read_points(file_name=None):
             if "version" in line or "points" in line or "{" in line or "}" in line:
                 continue
             else:
-                x, y = line.strip().split(sep=" ")
-                points.append([float(x), float(y)])
+                loc_x, loc_y = line.strip().split(sep=" ")
+                points.append([float(loc_x), float(loc_y)])
                 line_count += 1
     return points
 

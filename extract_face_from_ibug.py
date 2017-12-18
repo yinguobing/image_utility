@@ -62,7 +62,7 @@ def extract_face(image, points):
 
     # Resize image if needed.
     face_image = image[valid_box[1]:valid_box[3], valid_box[0]: valid_box[2]]
-    if valid_box[2] - valid_box[0] != TARGET_SIZE:
+    if (valid_box[2] - valid_box[0] != TARGET_SIZE) or (valid_box[3] - valid_box[1] != TARGET_SIZE):
         face_image = cv2.resize(face_image, (TARGET_SIZE, TARGET_SIZE))
 
     # And update points location.
@@ -115,7 +115,7 @@ def main():
         image_url = common_url + ".jpg"
         cv2.imwrite(image_url, face_image)
 
-        # Save the csv.
+        # Save the new point location.
         csv_url = common_url + ".json"
         points_to_save = np.array(points_normalized).flatten()
         with open(csv_url, mode='w') as file:
@@ -131,6 +131,7 @@ def main():
     print("All done! Total file: {}, invalid: {}, succeed: {}".format(
         len(pts_file_list), counter['invalid'],
         len(pts_file_list) - counter['invalid']))
+
 
 if __name__ == '__main__':
     main()

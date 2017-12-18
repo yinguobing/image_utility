@@ -2,11 +2,13 @@
 This script shows how to extract face area and corsponding facial
 landmark points from IBUG dataset.
 """
+import json
 import os
+
+import numpy as np
 
 import cv2
 import pts_tools as pt
-
 
 DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/044"
 TARGET_DIR = "/home/robin/Documents/landmark/223K/300vw"
@@ -97,23 +99,29 @@ def main():
         face_image, points_normalized = extract_face(image, points)
 
         # Mark the result
-        points_restored = []
-        for point in points_normalized:
-            points_restored.append([point[0] * TARGET_SIZE, point[1] * TARGET_SIZE])
-        pt.draw_landmark_point(face_image, points_restored)
+        # points_restored = []
+        # for point in points_normalized:
+        #     points_restored.append([point[0] * TARGET_SIZE, point[1] * TARGET_SIZE])
+        # pt.draw_landmark_point(face_image, points_restored)
 
         # New file to be written.
         head, tail = os.path.split(file_name)
-        common_file_name = tail.split('.')[-2]
         subset_name = head.split('/')[-2]
+        common_file_name = tail.split('.')[-2]
         common_url = os.path.join(
             TARGET_DIR, "300vw-" + subset_name + "-" + common_file_name)
-        image_url = common_url + ".jpg"
-        print("New file saved:", image_url, sep='\n')
 
-        # Save the files.
-        # cv2.imwrite(image_url, face_image)
-        # save_point(point_normalized, point_url)
+        # Save the Image.
+        image_url = common_url + ".jpg"
+        cv2.imwrite(image_url, face_image)
+
+        # Save the csv.
+        csv_url = common_url + ".json"
+        points_to_save = np.array(points_normalized).flatten()
+        with open(csv_url, mode='w') as file:
+            json.dump(list(points_to_save), file)
+
+        print("New file saved:", image_url, csv_url, sep='\n')
 
         # Preive the result
         cv2.imshow("Preview", face_image)

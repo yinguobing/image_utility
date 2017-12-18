@@ -27,7 +27,7 @@ def read_image(point_file):
     return img
 
 
-def get_valid_points(box, points, target_size=TARGET_SIZE):
+def get_valid_points(box, points):
     """Update points locations according to new image size"""
     left_x = box[0]
     top_y = box[1]
@@ -42,15 +42,10 @@ def get_valid_points(box, points, target_size=TARGET_SIZE):
         point[0] -= left_x
         point[1] -= top_y
 
-    # Then scale if needed.
-    if width == height:
-        scale_ratio_x = scale_ratio_y = target_size / width
-    else:
-        scale_ratio_x = target_size / width
-        scale_ratio_y = target_size / height
+    # Then normalize the coordinates.
     for point in points:
-        point[0] = point[0] * scale_ratio_x / target_size
-        point[1] = point[0] * scale_ratio_y / target_size
+        point[0] /= width
+        point[1] /= height
 
     return points
 
@@ -69,7 +64,7 @@ def extract_face(image, points):
         face_image = cv2.resize(face_image, (TARGET_SIZE, TARGET_SIZE))
 
     # And update points location.
-    valid_points = get_valid_points(valid_box, points, target_size=TARGET_SIZE)
+    valid_points = get_valid_points(valid_box, points)
 
     return face_image, valid_points
 
@@ -99,10 +94,13 @@ def main():
             continue
 
         # Extract face image and new points.
-        face_image, new_points = extract_face(image, points)
+        face_image, points_normalized = extract_face(image, points)
+        for point in points_normalized:
+            point[0] *= TARGET_SIZE
+            point[1] *= TARGET_SIZE
 
         # Mark the result
-        pt.draw_landmark_point(face_image, new_points)
+        pt.draw_landmark_point(face_image, points_normalized)
 
         # New file to be written.
         head, tail = os.path.split(file_name)

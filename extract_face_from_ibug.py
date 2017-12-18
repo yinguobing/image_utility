@@ -95,12 +95,12 @@ def main():
 
         # Extract face image and new points.
         face_image, points_normalized = extract_face(image, points)
-        for point in points_normalized:
-            point[0] *= TARGET_SIZE
-            point[1] *= TARGET_SIZE
 
         # Mark the result
-        pt.draw_landmark_point(face_image, points_normalized)
+        points_restored = []
+        for point in points_normalized:
+            points_restored.append([point[0] * TARGET_SIZE, point[1] * TARGET_SIZE])
+        pt.draw_landmark_point(face_image, points_restored)
 
         # New file to be written.
         head, tail = os.path.split(file_name)
@@ -109,10 +109,10 @@ def main():
         common_url = os.path.join(
             TARGET_DIR, "300vw-" + subset_name + "-" + common_file_name)
         image_url = common_url + ".jpg"
-        print("New file saved:", image_url)
+        print("New file saved:", image_url, sep='\n')
 
         # Save the files.
-        cv2.imwrite(image_url, face_image)
+        # cv2.imwrite(image_url, face_image)
         # save_point(point_normalized, point_url)
 
         # Preive the result

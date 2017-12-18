@@ -49,8 +49,8 @@ def get_valid_points(box, points, target_size=TARGET_SIZE):
         scale_ratio_x = target_size / width
         scale_ratio_y = target_size / height
     for point in points:
-        point[0] *= scale_ratio_x
-        point[1] *= scale_ratio_y
+        point[0] = point[0] * scale_ratio_x / target_size
+        point[1] = point[0] * scale_ratio_y / target_size
 
     return points
 

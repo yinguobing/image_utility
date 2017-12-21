@@ -12,8 +12,25 @@ HEIGHT = 300
 PROTOTXT = 'face_detector/deploy.prototxt'
 MODEL = 'face_detector/res10_300x300_ssd_iter_140000.caffemodel'
 
+CASCADES_FILE = "/opt/opencv/data/lbpcascades/lbpcascade_frontalface_improved.xml"
+CASCADES = cv.CascadeClassifier(CASCADES_FILE)
+
 NET = dnn.readNetFromCaffe(PROTOTXT, MODEL)
 VIDEO = '/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/538/vid.avi'
+
+
+def get_lbp_facebox(image):
+    """
+    Get the bounding box fo faces in image by LBP feature.
+    """
+    rects = CASCADES.detectMultiScale(image, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30),
+                                      flags=cv.CASCADE_SCALE_IMAGE)
+    if len(rects) == 0:
+        return []
+    for rect in rects:
+        rect[2] += rect[0]
+        rect[3] += rect[1]
+    return rects
 
 
 def get_facebox(image=None, threshold=0.5):
@@ -77,8 +94,10 @@ def main():
         ret, frame = cap.read()
         confidences, faceboxes = get_facebox(frame, threshold=0.5)
         draw_result(frame, confidences, faceboxes)
+        lbp_box = get_lbp_facebox(frame)
+        draw_box(frame, lbp_box)
         cv.imshow("detections", frame)
-        if cv.waitKey(1) != -1:
+        if cv.waitKey(100) != -1:
             break
 
 

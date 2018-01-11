@@ -36,7 +36,7 @@ def extract_local_img(image, feature_index):
     # Get the target point location.
     # IDX- TARGET
     # 30 - Nose tip
-    # 8] - Chin
+    # 8  - Chin
     # 36 - Left eye left corner
     # 45 - Right eye right corner
     # 48 - Left Mouth corner
@@ -77,7 +77,7 @@ def main():
 
         # Read in label point.
         json_path = file_name.split('.')[-2] + '.json'
-        feature_idx = 36
+        feature_idx = 30
         with open(json_path) as file:
             label_marks = np.array(json.load(file), dtype=np.float32)
         label_marks = np.reshape(label_marks, (-1, 2))
@@ -110,7 +110,7 @@ def main():
             _, tail = os.path.split(file_name)
             common_file_name = tail.split('.')[-2]
             common_url = os.path.join(
-                TARGET_DIR, '300vw', 'feature36', common_file_name + '-' + str(feature_idx))
+                TARGET_DIR, 'feature30', common_file_name + '-' + str(feature_idx))
 
             # Save the Image.
             image_url = common_url + ".jpg"

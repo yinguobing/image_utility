@@ -11,19 +11,15 @@ def main():
 
     gray_img_list = []
     num_checked = 0
-    with tqdm(total=len(files_to_check)) as pbar:
-        for each_file in files_to_check:
-            num_checked += 1
-            if num_checked % 100 == 0:
-                pbar.update(100)
-                
-            img = cv2.imread(each_file, cv2.IMREAD_ANYCOLOR)
+    for each_file in tqdm(files_to_check):
+        img = cv2.imread(each_file, cv2.IMREAD_ANYCOLOR)
 
-            if len(img.shape) != 3:
-                gray_img_list.append(each_file)
-                cv2.imshow("gray", img)
-                if cv2.waitKey(100) == 27:
-                    break
+        # Preview gray images.
+        if len(img.shape) != 3:
+            gray_img_list.append(each_file)
+            cv2.imshow("gray", img)
+            if cv2.waitKey(100) == 27:
+                break
 
     print("Total gray images: {}".format(len(gray_img_list)))
 

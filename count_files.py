@@ -46,8 +46,7 @@ def main():
     extention_dict = dict(count_files(DIR))
     total_count = sum(extention_dict.values())
     print("Total files:", total_count)
-    for _, name in enumerate(extention_dict):
-        print(name+":", extention_dict[name], end='; ')
+    print(extention_dict)
     print("Done!")
 
 

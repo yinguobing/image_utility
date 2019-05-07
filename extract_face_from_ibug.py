@@ -1,23 +1,27 @@
 """
-This script shows how to extract face area and corsponding facial
+This script shows how to extract face area and corresponding facial
 landmark points from IBUG dataset.
 """
 import json
 import os
 
-import numpy as np
-
 import cv2
+import numpy as np
+from tqdm import tqdm
+
 import pts_tools as pt
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14/044"
-TARGET_DIR = "/home/robin/Documents/landmark/223K/300vw"
+# Where the original IBUG data is located.
+DATA_DIR = "/data/dataset/public/facial_landmark/300VW_Dataset_2015_12_14"
 
-TARGET_SIZE = 128
+# Where you want the new generated data to be placed.
+TARGET_DIR = "/data/landmark"
+
+TARGET_SIZE = 112
 
 
 def read_image(point_file):
-    """Read the corsponding image."""
+    """Read the corresponding image."""
     head, tail = os.path.split(point_file)
     image_file = tail.split('.')[-2]
     img_jpg = os.path.join(head, image_file + ".jpg")
@@ -57,7 +61,7 @@ def extract_face(image, points):
     # Get a valid face area box.
     valid_box = pt.get_valid_box(image, points)
     if valid_box is None:
-        print("Opps, can not find valid box, using minimal box.")
+        print("Oops, can not find valid box, using minimal box.")
         valid_box = pt.get_minimal_box(points)
 
     # Resize image if needed.
@@ -79,11 +83,12 @@ def main():
         for file_name in file_names:
             if file_name.split(".")[-1] in ["pts"]:
                 pts_file_list.append(os.path.join(file_path, file_name))
+    print("PTS file numbers: {}".format(len(pts_file_list)))
 
     # Extract the image one by one. Use a dict to keep file count.
     counter = {'invalid': 0}
 
-    for file_name in pts_file_list:
+    for file_name in tqdm(pts_file_list):
         # Read points and image, make sure point importing goes well.
         points = pt.read_points(file_name)
         assert len(points) == 68, "The landmarks should contain 68 points."
@@ -105,6 +110,7 @@ def main():
         # pt.draw_landmark_point(face_image, points_restored)
 
         # New file to be written.
+        # CAUTION: remember to set a correct name for different dataset.
         head, tail = os.path.split(file_name)
         subset_name = head.split('/')[-2]
         common_file_name = tail.split('.')[-2]
@@ -121,11 +127,11 @@ def main():
         with open(csv_url, mode='w') as file:
             json.dump(list(points_to_save), file)
 
-        print("New file saved:", image_url, csv_url, sep='\n')
+        # print("New file saved:", image_url, csv_url, sep='\n')
 
-        # Preive the result
-        cv2.imshow("Preview", face_image)
-        cv2.waitKey(10)
+        # Preview the result
+        # cv2.imshow("Preview", face_image)
+        # cv2.waitKey(10)
 
     # All done, output debug info.
     print("All done! Total file: {}, invalid: {}, succeed: {}".format(

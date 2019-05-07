@@ -8,6 +8,7 @@ import cv2
 import face_detector as fd
 
 DATA_DIR = "/data/dataset/public/facial_landmark"
+PREVIEW_FACE_SIZE = 512
 
 
 def read_points(file_name=None):
@@ -309,30 +310,33 @@ def preview(point_file):
     if facebox is None:
         print("Using minimal box.")
         facebox = get_minimal_box(raw_points)
-    # fd.draw_box(img, [facebox], box_color=(255, 0, 0))
+
+    # Draw all the points and face box in image.
+    fd.draw_box(img, [facebox], box_color=(0, 255, 0))
+    draw_landmark_point(img, raw_points)
 
     # Extract valid image area.
     face_area = img[facebox[1]:facebox[3],
                     facebox[0]: facebox[2]]
 
-    # Check if resize is needed.
+    # Show all face area in the same size, resize them if needed.
     width = facebox[2] - facebox[0]
     height = facebox[3] - facebox[1]
     if width != height:
         print('opps!', width, height)
-    if (width != 128) or (height != 128):
-        face_area = cv2.resize(face_area, (256, 256))
+    if (width != PREVIEW_FACE_SIZE) or (height != PREVIEW_FACE_SIZE):
+        face_area = cv2.resize(
+            face_area, (PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
 
-    # # Show the result.
-    cv2.imshow("face", face_area)
-
-    # Show whole image in window.
+    # # Show the face area and the whole image.
     width, height = img.shape[:2]
     max_height = 640
     if height > max_height:
         img = cv2.resize(
             img, (max_height, int(width * max_height / height)))
     cv2.imshow("preview", img)
+    cv2.imshow("face", face_area)
+
     if cv2.waitKey() == 27:
         exit()
 

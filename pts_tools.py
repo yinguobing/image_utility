@@ -7,7 +7,7 @@ import os
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/home/robin/Documents/landmark/dataset/"
+DATA_DIR = "/data/dataset/public/facial_landmark"
 
 
 def read_points(file_name=None):
@@ -185,11 +185,11 @@ def fit_by_shrinking(box, rows, cols):
         bottom_y = rows
 
     # Then found out which is larger: the width or height. This will
-    # be used to decide in which dimention the size would be shrinked.
+    # be used to decide in which dimension the size would be shrunken.
     width = right_x - left_x
     height = bottom_y - top_y
     delta = abs(width - height)
-    # Find out which dimention should be altered.
+    # Find out which dimension should be altered.
     if width > height:                  # x should be altered.
         if left_x != 0 and right_x != cols:     # shrink from center.
             left_x += int(delta / 2)
@@ -224,15 +224,15 @@ def fit_box(box, image, points):
     # First try to move the box.
     box_moved = fit_by_shifting(box, rows, cols)
 
-    # If moving faild ,try to shrink.
+    # If moving fails ,try to shrink.
     if box_is_valid(image, points, box_moved):
         return box_moved
     else:
-        box_shrinked = fit_by_shrinking(box, rows, cols)
+        box_shrunken = fit_by_shrinking(box, rows, cols)
 
     # If shrink failed, return None
-    if box_is_valid(image, points, box_shrinked):
-        return box_shrinked
+    if box_is_valid(image, points, box_shrunken):
+        return box_shrunken
 
     # Finally, Worst situation.
     print("Fitting failed!")
@@ -241,14 +241,14 @@ def fit_box(box, image, points):
 
 def get_valid_box(image, points):
     """
-    Try to get a valid face box which meets the requirments.
+    Try to get a valid face box which meets the requirements.
     The function follows these steps:
         1. Try method 1, if failed:
         2. Try method 0, if failed:
         3. Return None
     """
     # Try method 1 first.
-    def _get_postive_box(raw_boxes, points):
+    def _get_positive_box(raw_boxes, points):
         for box in raw_boxes:
             # Move box down.
             diff_height_width = (box[3] - box[1]) - (box[2] - box[0])
@@ -265,7 +265,7 @@ def get_valid_box(image, points):
 
     # Try to get a positive box from face detection results.
     _, raw_boxes = fd.get_facebox(image, threshold=0.5)
-    positive_box = _get_postive_box(raw_boxes, points)
+    positive_box = _get_positive_box(raw_boxes, points)
     if positive_box is not None:
         if box_in_image(positive_box, image) is True:
             return positive_box
@@ -323,19 +323,18 @@ def preview(point_file):
     if (width != 128) or (height != 128):
         face_area = cv2.resize(face_area, (256, 256))
 
-    # Show the result.
+    # # Show the result.
     cv2.imshow("face", face_area)
-    if cv2.waitKey(10) == 27:
-        cv2.waitKey()
 
     # Show whole image in window.
-    # width, height = img.shape[:2]
-    # max_height = 640
-    # if height > max_height:
-    #     img = cv2.resize(
-    #         img, (max_height, int(width * max_height / height)))
-    # cv2.imshow("preview", img)
-    # cv2.waitKey()
+    width, height = img.shape[:2]
+    max_height = 640
+    if height > max_height:
+        img = cv2.resize(
+            img, (max_height, int(width * max_height / height)))
+    cv2.imshow("preview", img)
+    if cv2.waitKey() == 27:
+        exit()
 
 
 def main():

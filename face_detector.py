@@ -80,11 +80,11 @@ def draw_result(image, confidences, faceboxes):
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
 
-def draw_box(image, faceboxes, box_color=(255, 255, 255)):
+def draw_box(image, faceboxes, box_color=(255, 255, 255), line_width=4):
     """Draw square boxes on image"""
     for facebox in faceboxes:
         cv.rectangle(image, (facebox[0], facebox[1]),
-                     (facebox[2], facebox[3]), box_color)
+                     (facebox[2], facebox[3]), box_color, line_width)
 
 
 def main():

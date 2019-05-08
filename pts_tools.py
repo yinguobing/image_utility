@@ -7,7 +7,7 @@ import os
 import cv2
 import face_detector as fd
 
-DATA_DIR = "/data/dataset/public/facial_landmark"
+DATA_DIR = "/data/landmark"
 PREVIEW_FACE_SIZE = 512
 
 
@@ -323,7 +323,7 @@ def preview(point_file):
     width = facebox[2] - facebox[0]
     height = facebox[3] - facebox[1]
     if width != height:
-        print('opps!', width, height)
+        print('Oops!', width, height)
     if (width != PREVIEW_FACE_SIZE) or (height != PREVIEW_FACE_SIZE):
         face_area = cv2.resize(
             face_area, (PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))

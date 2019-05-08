@@ -2,12 +2,16 @@
 This script shows how to read iBUG pts file and draw all the landmark points on image.
 """
 
+import json
 import os
 
 import cv2
+import numpy as np
+
 import face_detector as fd
 
 DATA_DIR = "/data/landmark"
+IMG_SIZE = 112
 PREVIEW_FACE_SIZE = 512
 
 
@@ -341,10 +345,41 @@ def preview(point_file):
         exit()
 
 
-def main():
+def preview_json(json_file):
     """
-    The main entrance
+    Preview points on image.
     """
+    # Read the points from file.
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+        raw_points = np.reshape(data, (68, 2)) * IMG_SIZE
+
+    # Safe guard, make sure point importing goes well.
+    assert len(raw_points) == 68, "The landmarks should contain 68 points."
+
+    # Read the image.
+    head, tail = os.path.split(json_file)
+    image_file = tail.split('.')[-2]
+    img_jpg = os.path.join(head, image_file + ".jpg")
+    img_png = os.path.join(head, image_file + ".png")
+    if os.path.exists(img_jpg):
+        img = cv2.imread(img_jpg)
+    else:
+        img = cv2.imread(img_png)
+
+    # Fast check: all points are in image.
+    if points_are_valid(raw_points, img) is False:
+        return None
+
+    draw_landmark_point(img, raw_points)
+
+    # Show the face area and the whole image.
+    cv2.imshow("preview", img)
+    if cv2.waitKey() == 27:
+        exit()
+
+
+def view_pts():
     # List all the files
     pts_file_list = []
     for file_path, _, file_names in os.walk(DATA_DIR):
@@ -355,6 +390,28 @@ def main():
     # Show the image one by one.
     for file_name in pts_file_list:
         preview(file_name)
+
+
+def view_json():
+    # List all the files
+    json_file_list = []
+    for file_path, _, file_names in os.walk(DATA_DIR):
+        for file_name in file_names:
+            if file_name.split(".")[-1] in ["json"]:
+                json_file_list.append(os.path.join(file_path, file_name))
+
+    # Show the image one by one.
+    for file_name in json_file_list:
+        preview_json(file_name)
+
+def main():
+    """
+    The main entrance
+    """
+    # You can..
+    # view_pts()
+    # or,
+    view_json()
 
 
 if __name__ == "__main__":

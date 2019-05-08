@@ -8,6 +8,7 @@ import os
 import cv2
 import numpy as np
 
+import pose_estimator as pe
 import face_detector as fd
 
 DATA_DIR = "/data/landmark"
@@ -345,6 +346,12 @@ def preview(point_file):
         exit()
 
 
+def draw_pose(image, marks):
+    estimator = pe.PoseEstimator()
+    pose = estimator.solve_pose_by_68_points(marks)
+    estimator.draw_annotation_box(image, pose[0], pose[1])
+
+
 def preview_json(json_file):
     """
     Preview points on image.
@@ -372,6 +379,7 @@ def preview_json(json_file):
         return None
 
     draw_landmark_point(img, raw_points)
+    draw_pose(img, raw_points)
 
     # Show the face area and the whole image.
     cv2.imshow("preview", img)

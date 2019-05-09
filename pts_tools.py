@@ -15,6 +15,7 @@ from file_list_generator import ListGenerator
 IMAGE_DIR = "/data/landmark/image"
 MARK_DIR = "/data/landmark/mark68"
 POSE_DIR = "/data/landmark/pose"
+
 IMG_SIZE = 112
 PREVIEW_FACE_SIZE = 512
 
@@ -366,27 +367,24 @@ def preview_json(json_file):
     _, tail = os.path.split(json_file)
     image_file = tail.split('.')[-2]
     img_jpg = os.path.join(IMAGE_DIR, image_file + ".jpg")
-    img_png = os.path.join(IMAGE_DIR, image_file + ".png")
-    if os.path.exists(img_jpg):
-        img = cv2.imread(img_jpg)
-    else:
-        img = cv2.imread(img_png)
-
+    img = cv2.imread(img_jpg)
     img = cv2.resize(img, (PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
 
     # Fast check: all points are in image.
     if points_are_valid(marks, img) is False:
         return None
 
-    draw_landmark_point(img, marks)
-
+    # Get the pose.
     estimator = pe.PoseEstimator(
         img_size=(PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
     pose = estimator.solve_pose_by_68_points(marks)
 
+    # Draw annotations.
     estimator.draw_annotation_box(img, pose[0], pose[1])
     estimator.draw_axis(img, pose[0], pose[1])
+    draw_landmark_point(img, marks)
 
+    # Solve the pitch, yaw and roll angels.
     r_mat, _ = cv2.Rodrigues(pose[0])
     p_mat = np.hstack((r_mat, np.array([[0], [0], [0]])))
     _, _, _, _, _, _, u_angle = cv2.decomposeProjectionMatrix(p_mat)
@@ -401,9 +399,19 @@ def preview_json(json_file):
 
     print("pitch: {:.2f}, yaw: {:.2f}, roll: {:.2f}".format(pitch, yaw, roll))
 
+    # Save the pose in json files.
+    pose = {
+        "pitch": pitch/180,
+        "yaw": yaw/180,
+        "roll": roll/180
+    }
+    pose_file_path = os.path.join(POSE_DIR, image_file + "-pose.json")
+    with open(pose_file_path, 'w') as fid:
+        json.dump(pose, fid)
+
     # Show the face area and the whole image.
     cv2.imshow("preview", img)
-    if cv2.waitKey() == 27:
+    if cv2.waitKey(60) == 27:
         exit()
 
 

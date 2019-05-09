@@ -422,7 +422,7 @@ def view_json():
     json_file_list = []
     for file_path, _, file_names in os.walk(DATA_DIR):
         for file_name in file_names:
-            if file_name.split(".")[-1] in ["json"] and "pose" not in file_name:
+            if file_name.split(".")[-1] in ["json"]:
                 json_file_list.append(os.path.join(file_path, file_name))
 
     # Show the image one by one.

@@ -388,6 +388,14 @@ def preview_json(json_file):
     p_mat = np.hstack((r_mat, np.array([[0], [0], [0]])))
     _, _, _, _, _, _, u_angle = cv2.decomposeProjectionMatrix(p_mat)
     pitch, yaw, roll = u_angle.flatten()
+
+    # I do not know why the roll axis seems flipted 180 degree. Manually by pass
+    # this issue.
+    if roll > 0:
+        roll = 180-roll
+    elif roll < 0:
+        roll = -(180 + roll)
+
     print("pitch: {:.2f}, yaw: {:.2f}, roll: {:.2f}".format(pitch, yaw, roll))
 
     # Show the face area and the whole image.

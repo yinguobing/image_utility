@@ -7,6 +7,7 @@ import os
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 import face_detector as fd
 import pose_estimator as pe
@@ -397,7 +398,7 @@ def preview_json(json_file):
     elif roll < 0:
         roll = -(180 + roll)
 
-    print("pitch: {:.2f}, yaw: {:.2f}, roll: {:.2f}".format(pitch, yaw, roll))
+    # print("pitch: {:.2f}, yaw: {:.2f}, roll: {:.2f}".format(pitch, yaw, roll))
 
     # Save the pose in json files.
     pose = {
@@ -431,7 +432,7 @@ def view_json():
     json_file_list = lg.generate_list(MARK_DIR, ['json'])
 
     # Show the image one by one.
-    for file_name in json_file_list:
+    for file_name in tqdm(json_file_list):
         preview_json(file_name)
 
 

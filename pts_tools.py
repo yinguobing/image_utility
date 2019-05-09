@@ -8,10 +8,13 @@ import os
 import cv2
 import numpy as np
 
-import pose_estimator as pe
 import face_detector as fd
+import pose_estimator as pe
+from file_list_generator import ListGenerator
 
-DATA_DIR = "/data/landmark"
+IMAGE_DIR = "/data/landmark/image"
+MARK_DIR = "/data/landmark/mark68"
+POSE_DIR = "/data/landmark/pose"
 IMG_SIZE = 112
 PREVIEW_FACE_SIZE = 512
 
@@ -360,10 +363,10 @@ def preview_json(json_file):
     assert len(raw_points) == 68, "The landmarks should contain 68 points."
 
     # Read the image.
-    head, tail = os.path.split(json_file)
+    _, tail = os.path.split(json_file)
     image_file = tail.split('.')[-2]
-    img_jpg = os.path.join(head, image_file + ".jpg")
-    img_png = os.path.join(head, image_file + ".png")
+    img_jpg = os.path.join(IMAGE_DIR, image_file + ".jpg")
+    img_png = os.path.join(IMAGE_DIR, image_file + ".png")
     if os.path.exists(img_jpg):
         img = cv2.imread(img_jpg)
     else:
@@ -406,11 +409,8 @@ def preview_json(json_file):
 
 def view_pts():
     # List all the files
-    pts_file_list = []
-    for file_path, _, file_names in os.walk(DATA_DIR):
-        for file_name in file_names:
-            if file_name.split(".")[-1] in ["pts"]:
-                pts_file_list.append(os.path.join(file_path, file_name))
+    lg = ListGenerator()
+    pts_file_list = lg.generate_list(MARK_DIR, ['pts'])
 
     # Show the image one by one.
     for file_name in pts_file_list:
@@ -419,11 +419,8 @@ def view_pts():
 
 def view_json():
     # List all the files
-    json_file_list = []
-    for file_path, _, file_names in os.walk(DATA_DIR):
-        for file_name in file_names:
-            if file_name.split(".")[-1] in ["json"]:
-                json_file_list.append(os.path.join(file_path, file_name))
+    lg = ListGenerator()
+    json_file_list = lg.generate_list(MARK_DIR, ['json'])
 
     # Show the image one by one.
     for file_name in json_file_list:

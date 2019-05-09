@@ -346,12 +346,6 @@ def preview(point_file):
         exit()
 
 
-def draw_pose(image, marks):
-    estimator = pe.PoseEstimator()
-    pose = estimator.solve_pose_by_68_points(marks)
-    estimator.draw_annotation_box(image, pose[0], pose[1])
-
-
 def preview_json(json_file):
     """
     Preview points on image.
@@ -359,7 +353,8 @@ def preview_json(json_file):
     # Read the points from file.
     with open(json_file, 'r') as f:
         data = json.load(f)
-        raw_points = np.reshape(data, (68, 2)) * IMG_SIZE
+        raw_points = np.reshape(data, (-1, 2))
+    marks = raw_points * PREVIEW_FACE_SIZE
 
     # Safe guard, make sure point importing goes well.
     assert len(raw_points) == 68, "The landmarks should contain 68 points."
@@ -374,12 +369,26 @@ def preview_json(json_file):
     else:
         img = cv2.imread(img_png)
 
+    img = cv2.resize(img, (PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
+
     # Fast check: all points are in image.
-    if points_are_valid(raw_points, img) is False:
+    if points_are_valid(marks, img) is False:
         return None
 
-    draw_landmark_point(img, raw_points)
-    draw_pose(img, raw_points)
+    draw_landmark_point(img, marks)
+
+    estimator = pe.PoseEstimator(
+        img_size=(PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
+    pose = estimator.solve_pose_by_68_points(marks)
+
+    estimator.draw_annotation_box(img, pose[0], pose[1])
+    estimator.draw_axis(img, pose[0], pose[1])
+
+    r_mat, _ = cv2.Rodrigues(pose[0])
+    p_mat = np.hstack((r_mat, np.array([[0], [0], [0]])))
+    _, _, _, _, _, _, u_angle = cv2.decomposeProjectionMatrix(p_mat)
+    pitch, yaw, roll = u_angle.flatten()
+    print("pitch: {:.2f}, yaw: {:.2f}, roll: {:.2f}".format(pitch, yaw, roll))
 
     # Show the face area and the whole image.
     cv2.imshow("preview", img)
@@ -405,12 +414,13 @@ def view_json():
     json_file_list = []
     for file_path, _, file_names in os.walk(DATA_DIR):
         for file_name in file_names:
-            if file_name.split(".")[-1] in ["json"]:
+            if file_name.split(".")[-1] in ["json"] and "pose" not in file_name:
                 json_file_list.append(os.path.join(file_path, file_name))
 
     # Show the image one by one.
     for file_name in json_file_list:
         preview_json(file_name)
+
 
 def main():
     """

@@ -56,6 +56,22 @@ class ListGenerator:
             for each_record in self.file_list:
                 writer.writerow({'file_url': each_record})
 
+    def save_basename_list(self, list_name='basename.csv'):
+        basename_list = []
+        for image in image_list:
+            basename = os.path.basename(image)
+            basename_list.append(basename.rstrip('.jpg'))
+
+        with open(list_name, 'w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=['file_basename'])
+
+            # Write the header.
+            writer.writeheader()
+
+            # Write all the rows.
+            for each_record in basename_list:
+                writer.writerow({'file_basename': each_record})
+
 
 def main():
     """MAIN"""

@@ -9,8 +9,8 @@ from cv2 import dnn
 WIDTH = 300
 HEIGHT = 300
 
-PROTOTXT = 'assests/deploy.prototxt'
-MODEL = 'assests/res10_300x300_ssd_iter_140000.caffemodel'
+PROTOTXT = 'assets/deploy.prototxt'
+MODEL = 'assets/res10_300x300_ssd_iter_140000.caffemodel'
 
 CASCADES_FILE = "/opt/opencv/data/lbpcascades/lbpcascade_frontalface_improved.xml"
 CASCADES = cv.CascadeClassifier(CASCADES_FILE)

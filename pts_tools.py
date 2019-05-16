@@ -380,6 +380,9 @@ def preview_json(json_file):
         img_size=(PREVIEW_FACE_SIZE, PREVIEW_FACE_SIZE))
     pose = estimator.solve_pose_by_68_points(marks)
 
+    # Uncomment the following line to draw the 3D model points.
+    # estimator.show_3d_model()
+
     # Draw annotations.
     estimator.draw_annotation_box(img, pose[0], pose[1])
     estimator.draw_axis(img, pose[0], pose[1])

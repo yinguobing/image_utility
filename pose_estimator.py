@@ -1,7 +1,6 @@
 """Estimate head pose according to the facial landmarks"""
-import numpy as np
-
 import cv2
+import numpy as np
 
 
 class PoseEstimator:
@@ -48,9 +47,27 @@ class PoseEstimator:
                 raw_value.append(line)
         model_points = np.array(raw_value, dtype=np.float32)
         model_points = np.reshape(model_points, (3, -1)).T
+
+        # Transform the model into a front view.
         model_points[:, 2] *= -1
 
         return model_points
+
+    def show_3d_model(self):
+        from matplotlib import pyplot
+        from mpl_toolkits.mplot3d import Axes3D
+        fig = pyplot.figure()
+        ax = Axes3D(fig)
+
+        x = self.model_points_68[:, 0]
+        y = self.model_points_68[:, 1]
+        z = self.model_points_68[:, 2]
+
+        ax.scatter(x, y, z)
+        ax.axis('square')
+        pyplot.xlabel('x')
+        pyplot.ylabel('y')
+        pyplot.show()
 
     def solve_pose(self, image_points):
         """

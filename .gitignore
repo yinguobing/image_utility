@@ -101,3 +101,6 @@ ENV/
 .mypy_cache/
 tempCodeRunnerFile.py
 .vscode/launch.json
+
+# vs code
+.vscode

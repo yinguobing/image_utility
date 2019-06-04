@@ -1,41 +1,51 @@
+"""Resize all images in directory. The original images will be REPLACED"""
 import os
+
 import cv2
 
-image_format_list = ["jpeg", "jpg", "gif", "png", "bmp", "tiff", "ppm", "pgm", "pbm", "pnm"]
+IMAGE_FORMATS = ["jpeg", "jpg", "gif", "png",
+                 "bmp", "tiff", "ppm", "pgm", "pbm", "pnm"]
 
-current_path = "/home/robin/Desktop/hand_images/00_rps_image_set"
-
-count = 0
-total_files = 0
-
-cv2.namedWindow("Preview", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Preview", 120, 120)
+# Directory of images to be resized.
+IMAGE_DIR = "/data/dataset/public/lfw/eval_112"
 
 # To which size the image should be resized.
-target_size = 32
+TARGET_SIZE = 112
 
-for file_path, _, file_names in os.walk(current_path, followlinks=False):
-    for file_name in file_names:
-        if file_name.split(".")[-1] in image_format_list:
-            count += 1
-            # print(file_name)
 
-            file_url = os.path.join(file_path, file_name)
+def run():
+    image_files_count = 0
+    total_files_count = 0
 
-            image = cv2.imread(os.path.join(file_path, file_name))
-            height, width, depth = image.shape
+    cv2.namedWindow("Preview", cv2.WINDOW_NORMAL)
 
-            if height == width and height == target_size:
-                pass
+    for file_path, _, file_names in os.walk(IMAGE_DIR, followlinks=False):
+        for file_name in file_names:
+            if file_name.split(".")[-1] in IMAGE_FORMATS:
+                image_files_count += 1
+                # print(file_name)
+
+                file_url = os.path.join(file_path, file_name)
+
+                image = cv2.imread(os.path.join(file_path, file_name))
+                height, width, depth = image.shape
+
+                if height == width and height == TARGET_SIZE:
+                    continue
+                else:
+                    image = cv2.resize(
+                        image, (TARGET_SIZE, TARGET_SIZE))
+
+                cv2.imwrite(file_url, image)
+                cv2.imshow("Preview", image)
+                cv2.waitKey(10)
             else:
-                image = cv2.resize(image, (target_size, target_size), image)
+                print("Not a image file: ", file_name)
 
-            cv2.imwrite(file_url, image)
-            cv2.imshow("Preview", image)
-            cv2.waitKey(10)
-        else:
-            print("Not a image file: ", file_name)
+            total_files_count += 1
 
-        total_files += 1
+    print("Total files: {}, images re-sized: {}".format(total_files_count, image_files_count))
 
-print("Total files: %2d, Images re-sized: %2d" % (total_files, count))
+
+if __name__ == "__main__":
+    run()

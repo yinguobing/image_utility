@@ -34,12 +34,29 @@ class BlurDetector(object):
             result: boolean value indicating whether the image is valid.
             image: a modified valid image.
         """
-        pass
+        result = True
+        height, width = image.shape[:2]
+        _y = height % block_size
+        _x = width % block_size
+
+        pad_x = pad_y = 0
+
+        if _y != 0:
+            pad_y = block_size - _y
+            result = False
+        if _x != 0:
+            pad_x = block_size - _x
+            result = False
+
+        image = cv2.copyMakeBorder(
+            image, 0, pad_y, 0, pad_x, cv2.BORDER_REPLICATE)
+
+        return result, image
 
     def get_blurness(self, image, block_size=8):
         """Estimate the blurness of an image.
         Args:
-            image: image as a numpy array.
+            image: image as a numpy array of shape [height, width, channels].
             block_size: the size of the minimal DCT block size.
         Returns:
             a float value represents the blurness.
@@ -74,6 +91,9 @@ class BlurDetector(object):
 
 if __name__ == "__main__":
     bd = BlurDetector()
-    image = cv2.imread('/home/robin/Desktop/blur_images/motion_v12px.jpg')
+    image = cv2.imread('/home/robin/Desktop/face.jpg')
+    result, image = bd.check_image_size(image)
+    if not result:
+        print("Image expanded.")
     blur = bd.get_blurness(image)
     print("Blurness: {:.2f}".format(blur))

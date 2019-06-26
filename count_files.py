@@ -2,10 +2,12 @@
 This script shows how to count all files in a specific directory.
 """
 
+from argparse import ArgumentParser
 import os
 from collections import Counter
 
-DIR = "/home/robin/Documents/landmark/dataset/300VW_Dataset_2015_12_14"
+parser = ArgumentParser()
+parser.add_argument('dir', type=str, help='target path')
 
 
 def get_extention(file_name=None):
@@ -43,8 +45,10 @@ def main():
     """
     The main entrance.
     """
-    extention_dict = dict(count_files(DIR))
+    args = parser.parse_args()
+    extention_dict = dict(count_files(args.dir))
     total_count = sum(extention_dict.values())
+
     print("Total files:", total_count)
     print(extention_dict)
     print("Done!")

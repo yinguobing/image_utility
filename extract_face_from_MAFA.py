@@ -133,12 +133,16 @@ if __name__ == "__main__":
         image = cv2.imread(
             path.join(MAFA_ROOT, 'test/images', sample['image_file']))
 
-        print(labels)
-        draw_face(image, labels)
-        draw_mask(image, labels)
-        cv2.imshow('preview', image)
-        if cv2.waitKey() == 27:
-            break
-        # face_image_file = path.join(
-        #     EXPORT_DIR, 'images', sample['image_file'])
-        # export_face(image, labels, face_image_file, 112)
+        # # Preview the data.
+        # print(labels)
+        # draw_face(image, labels)
+        # draw_mask(image, labels)
+        # cv2.imshow('preview', image)
+        # if cv2.waitKey() == 27:
+        #     break
+
+        # # Extract the face images.
+        if labels['face_type'] == 1:
+            face_image_file = path.join(
+                EXPORT_DIR, sample['image_file'])
+            export_face(image, labels, face_image_file, 112)

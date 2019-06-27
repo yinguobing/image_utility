@@ -25,7 +25,7 @@ def load_labels(label_file):
     return train_samples
 
 
-def parse_labels(raw_Labels):
+def parse_train_labels(raw_Labels):
     """
     raw labels form: [x,y,w,h, x1,y1,x2,y2, x3,y3,w3,h3, occ_type, occ_degree,
     gender, race, orientation, x4,y4,w4,h4]

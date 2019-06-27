@@ -7,22 +7,32 @@ import numpy as np
 from tqdm import tqdm
 
 MAFA_ROOT = '/data/dataset/public/MAFA'
-MAT_FILE = path.join(MAFA_ROOT, 'train/LabelTrainAll.mat')
-EXPORT_DIR = '/data/dataset/public/MAFA/tfrecord'
+MAT_FILE = path.join(MAFA_ROOT, 'test/LabelTestAll.mat')
+EXPORT_DIR = '/data/dataset/public/MAFA/tfrecord/test_images'
 
 
-def load_labels(label_file):
+def load_labels(label_file, data_type='train'):
     out = hdf5storage.loadmat(MAT_FILE)
-    record = np.array(out['label_train'])[0]
-    train_samples = []
-    for item in record:
-        train_samples.append(
-            {
-                'image_file': item[1][0],
-                'lables': item[2][0].astype(int)
-            }
-        )
-    return train_samples
+    samples = []
+    if data_type == 'train':
+        record = np.array(out['label_train'])[0]
+        for item in record:
+            samples.append(
+                {
+                    'image_file': item[1][0],
+                    'lables': item[2][0].astype(int)
+                }
+            )
+    else:
+        record = np.array(out['LabelTest'])[0]
+        for item in record:
+            samples.append(
+                {
+                    'image_file': item[0][0],
+                    'lables': item[1][0].astype(int)
+                }
+            )
+    return samples
 
 
 def parse_train_labels(raw_Labels):
@@ -59,8 +69,8 @@ def parse_train_labels(raw_Labels):
 
 def parse_test_labels(raw_Labels):
     """
-    The format is stored in a 18d array (x,y,w,h,face_type,x1,y1,w1,h1, occ_type
-    , occ_degree, gender, race, orientation, x2,y2,w2,h2),  where
+    The format is stored in a 18d array (x,y,w,h,face_type,x1,y1,w1,h1, occ_type,
+    occ_degree, gender, race, orientation, x2,y2,w2,h2), where
         (a) (x,y,w,h) is the bounding box of a face, 
         (b) face_type stands for the face type and has: 1 for masked face, 2 for
             unmasked face and 3 for invalid face.
@@ -99,7 +109,7 @@ def draw_mask(image, labels, color=(0, 255, 0)):
     x, y, w, h = labels['face']
     _x, _y, _w, _h = labels['occlude']['location']
     cv2.rectangle(image, (x + _x, y + _y),
-                  (x + _w, y + _h), colors[1], 2)
+                  (x + _w, y + _h), color, 2)
 
 
 def export_face(image, labels, export_file, target_size=112):
@@ -114,15 +124,21 @@ def export_face(image, labels, export_file, target_size=112):
 
 if __name__ == "__main__":
     # Load annotations from the mat file.
-    train_samples = load_labels(MAT_FILE)
+    samples = load_labels(MAT_FILE, data_type='test')
 
     # loop through all the annotations and do processing. Here we are going to
     # extract all the occluded faces and save them in a new image file.
-    for sample in tqdm(train_samples):
-        labels = parse_labels(sample['lables'])
+    for sample in tqdm(samples):
+        labels = parse_test_labels(sample['lables'])
         image = cv2.imread(
-            path.join(MAFA_ROOT, 'train/images', sample['image_file']))
+            path.join(MAFA_ROOT, 'test/images', sample['image_file']))
 
-        face_image_file = path.join(
-            EXPORT_DIR, 'images', sample['image_file'])
-        export_face(image, labels, face_image_file, 112)
+        print(labels)
+        draw_face(image, labels)
+        draw_mask(image, labels)
+        cv2.imshow('preview', image)
+        if cv2.waitKey() == 27:
+            break
+        # face_image_file = path.join(
+        #     EXPORT_DIR, 'images', sample['image_file'])
+        # export_face(image, labels, face_image_file, 112)

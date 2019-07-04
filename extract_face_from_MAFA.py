@@ -24,7 +24,7 @@ def load_labels(label_file, is_train):
     out = hdf5storage.loadmat(label_file)
     samples = []
     if is_train:
-        record = np.array(out['label_train'])[0]
+        record = out['label_train'][0]
         for item in record:
             samples.append(
                 {
@@ -33,7 +33,7 @@ def load_labels(label_file, is_train):
                 }
             )
     else:
-        record = np.array(out['LabelTest'])[0]
+        record = out['LabelTest'][0]
         for item in record:
             samples.append(
                 {

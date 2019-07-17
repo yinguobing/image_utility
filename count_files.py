@@ -8,6 +8,7 @@ from collections import Counter
 
 parser = ArgumentParser()
 parser.add_argument('dir', type=str, help='target path')
+args = parser.parse_args()
 
 
 def get_extention(file_name=None):
@@ -45,7 +46,6 @@ def main():
     """
     The main entrance.
     """
-    args = parser.parse_args()
     extention_dict = dict(count_files(args.dir))
     total_count = sum(extention_dict.values())
 
